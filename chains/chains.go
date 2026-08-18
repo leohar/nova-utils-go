@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strings"
 )
 
 // DefaultURL points to the latest chains config served over raw GitHub,
@@ -77,6 +78,52 @@ func Fetch(ctx context.Context, url string) ([]Chain, error) {
 		return nil, fmt.Errorf("fetch chains config: %s returned %s", url, resp.Status)
 	}
 	return Load(resp.Body)
+}
+
+// LoadFromEnv loads the chains config the way the test suite expects:
+// from the local file named by CHAINS_JSON_PATH if set, otherwise over
+// HTTP from CHAINS_JSON_URL or DefaultURL.
+func LoadFromEnv(ctx context.Context) ([]Chain, error) {
+	if path := os.Getenv("CHAINS_JSON_PATH"); path != "" {
+		return LoadFile(path)
+	}
+	url := os.Getenv("CHAINS_JSON_URL")
+	if url == "" {
+		url = DefaultURL
+	}
+	return Fetch(ctx, url)
+}
+
+// ByChainID returns the chain with the given chainId, or nil.
+func ByChainID(chains []Chain, id string) *Chain {
+	for i := range chains {
+		if chains[i].ChainID == id {
+			return &chains[i]
+		}
+	}
+	return nil
+}
+
+// HasOption reports whether the chain's options list contains name.
+func (c Chain) HasOption(name string) bool {
+	for _, option := range c.Options {
+		if option == name {
+			return true
+		}
+	}
+	return false
+}
+
+// HTTPSNodes returns the chain's nodes reachable over HTTPS,
+// skipping WebSocket-only endpoints.
+func (c Chain) HTTPSNodes() []Node {
+	var nodes []Node
+	for _, node := range c.Nodes {
+		if strings.HasPrefix(node.URL, "https://") {
+			nodes = append(nodes, node)
+		}
+	}
+	return nodes
 }
 
 // SubqueryURLs returns the deduplicated, sorted list of SubQuery endpoints
