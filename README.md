@@ -15,8 +15,9 @@ tests alongside the live integration checks.
 |---|---|---|
 | `test_subquery_is_synced.py` | `subquery/sync_test.go` | For every SubQuery endpoint in `chains.json`, asserts the indexer is < 10 blocks behind the chain head. All endpoints are checked concurrently. Unlike the original, an endpoint that fails to respond **fails the test** instead of being silently skipped. |
 | `test_eth_nodes_availability.py` | `evm/nodes_test.go` | Every HTTPS node of Ethereum mainnet must answer `eth_getBlockByNumber("latest")` within 3 s and be within 3 blocks of the best head observed across the nodes. Replaces the original's hardcoded Infura reference node (and its embedded API key) with a concurrent cross-node comparison. |
+| `test_rpc_methods_availability.py` | `substrate/methods_test.go` | Every node of every Substrate chain must expose the RPC methods Nova Wallet clients rely on (queried via `rpc_methods`). Nested subtests per chain and node, all missing methods of a node reported at once. |
 
-Planned next: Substrate RPC method availability, node sync checks.
+Planned next: node sync checks, network parameter checks.
 
 ## Layout
 
@@ -26,8 +27,12 @@ Planned next: Substrate RPC method availability, node sync checks.
   plus the sync integration test.
 - `evm/` — minimal JSON-RPC client for EVM chains, plus the node
   availability integration test.
+- `substrate/` — minimal JSON-RPC-over-WebSocket client for Substrate
+  nodes, plus the RPC methods integration test.
 
-No dependencies outside the Go standard library.
+The only dependency outside the Go standard library is
+[coder/websocket](https://github.com/coder/websocket) — Substrate nodes
+speak JSON-RPC over WebSocket.
 
 ## Running
 

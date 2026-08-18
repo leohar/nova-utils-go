@@ -126,6 +126,20 @@ func (c Chain) HTTPSNodes() []Node {
 	return nodes
 }
 
+// Substrate returns the chains that expose a Substrate runtime: entries
+// marked PAUSED in their name or carrying the noSubstrateRuntime option
+// are dropped, mirroring nova-utils tests/data/setting_data.py.
+func Substrate(chains []Chain) []Chain {
+	var result []Chain
+	for _, chain := range chains {
+		if strings.Contains(chain.Name, "PAUSED") || chain.HasOption("noSubstrateRuntime") {
+			continue
+		}
+		result = append(result, chain)
+	}
+	return result
+}
+
 // SubqueryURLs returns the deduplicated, sorted list of SubQuery endpoints
 // referenced by any externalApi section of the given chains.
 func SubqueryURLs(chains []Chain) []string {
