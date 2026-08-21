@@ -3,7 +3,6 @@ package subquery_test
 import (
 	"context"
 	"net/http"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -53,28 +52,13 @@ func TestSubqueryIsSynced(t *testing.T) {
 	}
 }
 
-// loadChains reads the chains config from CHAINS_JSON_PATH if set,
-// otherwise fetches it from CHAINS_JSON_URL or the default raw GitHub URL.
 func loadChains(t *testing.T) []chains.Chain {
 	t.Helper()
-
-	if path := os.Getenv("CHAINS_JSON_PATH"); path != "" {
-		cfg, err := chains.LoadFile(path)
-		if err != nil {
-			t.Fatalf("load chains config: %v", err)
-		}
-		return cfg
-	}
-
-	url := os.Getenv("CHAINS_JSON_URL")
-	if url == "" {
-		url = chains.DefaultURL
-	}
 	ctx, cancel := context.WithTimeout(t.Context(), requestTimeout)
 	defer cancel()
-	cfg, err := chains.Fetch(ctx, url)
+	cfg, err := chains.LoadFromEnv(ctx)
 	if err != nil {
-		t.Fatalf("fetch chains config: %v", err)
+		t.Fatalf("load chains config: %v", err)
 	}
 	return cfg
 }

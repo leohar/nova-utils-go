@@ -14,9 +14,9 @@ tests alongside the live integration checks.
 | Original (pytest) | Go | Notes |
 |---|---|---|
 | `test_subquery_is_synced.py` | `subquery/sync_test.go` | For every SubQuery endpoint in `chains.json`, asserts the indexer is < 10 blocks behind the chain head. All endpoints are checked concurrently. Unlike the original, an endpoint that fails to respond **fails the test** instead of being silently skipped. |
+| `test_eth_nodes_availability.py` | `evm/nodes_test.go` | Every HTTPS node of Ethereum mainnet must answer `eth_getBlockByNumber("latest")` within 3 s and be within 3 blocks of the best head observed across the nodes. Replaces the original's hardcoded Infura reference node (and its embedded API key) with a concurrent cross-node comparison. |
 
-Planned next: Ethereum RPC node availability, Substrate RPC method availability,
-node sync checks.
+Planned next: Substrate RPC method availability, node sync checks.
 
 ## Layout
 
@@ -24,6 +24,8 @@ node sync checks.
   Nova Wallet clients consume over raw GitHub.
 - `subquery/` — minimal client for the SubQuery `_metadata` GraphQL endpoint,
   plus the sync integration test.
+- `evm/` — minimal JSON-RPC client for EVM chains, plus the node
+  availability integration test.
 
 No dependencies outside the Go standard library.
 
